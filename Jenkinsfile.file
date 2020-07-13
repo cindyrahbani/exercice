@@ -1,0 +1,24 @@
+#!/usr/bin/groovy
+@Library('sca-utils@master') _
+ 
+pipeline {
+    agent any
+ 
+    stages {
+        stage("Cloning Project") {
+            steps {
+                checkout([$class: 'GitSCM',
+                branches: [[name: "${Repo_Branch}"]],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '.']],
+                submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'ssh-jenkins',
+                url: "${STASH_REPO_URL_TO_SCAN}"]]])
+            }
+        }
+        stage("Getting LGTM project status") {
+            steps {
+                lgtmScanProject("${PROJECT_KEY}","${REPO_NAME}", [gitServer:"${BITBUCKET_SERVER}"])
+            }
+        }
+    }
+}
